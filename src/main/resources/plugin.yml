@@ -1,0 +1,7 @@
+name: JiangChat
+main: com.mcyzj.jiangchat.Main
+version: 1.0.0
+author: MC鱼子酱
+softdepend: [ Vault, PlaceholderAPI, PlayerPoints, floodgate, JiangPlayer]
+api-version: 1.13
+folia-supported: true
