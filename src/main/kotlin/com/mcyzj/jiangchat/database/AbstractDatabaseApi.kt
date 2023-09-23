@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.j256.ormlite.dao.Dao
 import com.xbaimiao.easylib.module.database.Ormlite
+import com.xbaimiao.easylib.module.utils.submit
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -41,16 +42,18 @@ open class AbstractDatabaseApi(ormlite: Ormlite): DatabaseApi {
         val jsonData = JsonObject()
         jsonData.addProperty("joinChannel", data.joinChannel.joinToString(","))
         jsonData.addProperty("chatChannel", data.chatChannel)
-        if (channelDao == null) {
-            channelDao = PlayerDao()
-            channelDao.name = data.name
-            channelDao.uuid = data.uuid
-            channelDao.data = jsonData.toString()
-            playerTable.create(channelDao)
-        } else {
-            channelDao.name = data.name
-            channelDao.data = jsonData.toString()
-            playerTable.update(channelDao)
+        submit(async = true) {
+            if (channelDao == null) {
+                channelDao = PlayerDao()
+                channelDao.name = data.name
+                channelDao.uuid = data.uuid
+                channelDao.data = jsonData.toString()
+                playerTable.create(channelDao)
+            } else {
+                channelDao.name = data.name
+                channelDao.data = jsonData.toString()
+                playerTable.update(channelDao)
+            }
         }
     }
 
@@ -160,15 +163,17 @@ open class AbstractDatabaseApi(ormlite: Ormlite): DatabaseApi {
         val player = arrayListOf<UUID>()
         val noChat = arrayListOf<UUID>()
         val uuidPowerMap = data.uuidPowerMap
-        for (key in uuidPowerMap.keys){
-            when(uuidPowerMap[key]){
-                "manager" ->{
+        for (key in uuidPowerMap.keys) {
+            when (uuidPowerMap[key]) {
+                "manager" -> {
                     manager.add(key)
                 }
-                "player" ->{
+
+                "player" -> {
                     player.add(key)
                 }
-                "noChat" ->{
+
+                "noChat" -> {
                     player.add(key)
                 }
             }
@@ -184,22 +189,25 @@ open class AbstractDatabaseApi(ormlite: Ormlite): DatabaseApi {
         val queryBuilder = channelTable.queryBuilder()
         queryBuilder.where().eq("id", data.id)
         var channelDao = queryBuilder.queryForFirst()
-        return if (channelDao == null) {
-            channelDao = ChannelDao()
-            channelDao.name = data.name
-            channelDao.data = jsonData.toString()
-            channelTable.create(channelDao)
-            channelDao.id
-        } else {
-            channelDao.name = data.name
-            channelDao.data = jsonData.toString()
-            channelTable.update(channelDao)
-            channelDao.id
+        submit(async = true) {
+            if (channelDao == null) {
+                channelDao = ChannelDao()
+                channelDao.name = data.name
+                channelDao.data = jsonData.toString()
+                channelTable.create(channelDao)
+            } else {
+                channelDao.name = data.name
+                channelDao.data = jsonData.toString()
+                channelTable.update(channelDao)
+            }
         }
+        return channelDao.id
     }
     override fun deleteChannelData(data: ChannelData) {
         val queryBuilder = channelTable.queryBuilder()
-        queryBuilder.where().eq("id", data.id)
-        channelTable.delete(queryBuilder.queryForFirst())
+        submit(async = true) {
+            queryBuilder.where().eq("id", data.id)
+            channelTable.delete(queryBuilder.queryForFirst())
+        }
     }
 }
